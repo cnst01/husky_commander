@@ -12,6 +12,8 @@ O objetivo principal deste pacote é permitir que um operador, a partir de uma a
 Este pacote foi desenvolvido pensando em interações com pacotes de navegação complexos, como o [husky_navigation](https://github.com/husky/husky_navigation) (ou qualquer outro pacote que você tenha, como `meu_pacote_nav`), permitindo iniciar tarefas como mapeamento ou navegação sem precisar de acesso direto (SSH) ao terminal do robô.
 
 ![gui app example image](public/gui_app.png "gui_app_image")
+![diagram](public/diagram.png "diagram")
+
 
 ## 2. Arquitetura
 
