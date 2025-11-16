@@ -1,0 +1,28 @@
+# Lista de rotinas que o husky_commander pode executar.
+# Cada rotina tem um nome (para o botão) e uma lista de passos.
+routines:
+  - name: "Iniciar Rotina de Navegação (Waypoint)"
+    steps:
+      - type: "launch"
+        package: "husky_navigation"
+        command: "nav2_husky.launch.py"
+        
+      - type: "run"
+        package: "husky_navigation"
+        command: "waypoint_state_machine"
+
+  - name: "Iniciar Rotina de Simulação (Bringup)"
+    steps:
+      - type: "launch"
+        package: "clearpath_gz"
+        command: "gz_sim.launch.py"
+        
+      - type: "launch"
+        package: "clearpath_gz"
+        command: "robot_spawn.launch.py"
+
+  - name: "Iniciar Mapeamento (SLAM)"
+    steps:
+      - type: "launch"
+        package: "husky_navigation"
+        command: "mapping_slam.launch.py"
