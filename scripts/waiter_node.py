@@ -38,16 +38,11 @@ class WaiterNode(Node):
             self.get_logger().error(f'{log_prefix}Pacote ou comando não podem estar vazios.')
             return False # Falha
 
-        # --- LÓGICA DE CONSTRUÇÃO ATUALIZADA ---
-        # Começa com o básico
         cmd_list = ['ros2', cmd_msg.type, cmd_msg.package, cmd_msg.command]
         
         # Adiciona os argumentos
         if cmd_msg.args:
-            # A mágica está aqui: msg.args é uma lista de strings
-            # que é simplesmente concatenada à lista do comando.
             cmd_list.extend(cmd_msg.args)
-        # ----------------------------------------
         
         try:
             subprocess.Popen(cmd_list)

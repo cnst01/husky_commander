@@ -20,7 +20,6 @@ class GuiPublisherNode(Node):
         msg.type = cmd_type
         msg.package = pkg
         msg.command = cmd
-        # ATUALIZADO: Adiciona a lista de argumentos
         msg.args = args_list
         
         self.command_publisher_.publish(msg)
@@ -39,11 +38,7 @@ class GuiPublisherNode(Node):
             cmd_step.type = step.get('type', 'launch')
             cmd_step.package = step.get('package', '')
             cmd_step.command = step.get('command', '')
-            
-            # --- LÓGICA DE ARGUMENTOS ATUALIZADA ---
-            # Lê a chave 'args' do YAML. Se não existir, usa uma lista vazia.
             cmd_step.args = step.get('args', [])
-            # ---------------------------------------
             
             if not cmd_step.package or not cmd_step.command:
                 self.get_logger().error(f"Passo da rotina inválido, pulando: {step}")
@@ -65,7 +60,6 @@ class AppGUI:
         self.root = tk.Tk()
         self.root.title("Controle Remoto do Robô")
         
-        # --- Frame para Comandos Manuais ---
         manual_frame = tk.LabelFrame(self.root, text="Comando Manual", padx=10, pady=10)
         manual_frame.pack(fill="x", padx=10, pady=10)
 
@@ -85,7 +79,6 @@ class AppGUI:
         self.command_entry.grid(row=2, column=1, padx=5, pady=5)
         self.command_entry.insert(0, "nav2_husky.launch.py")
 
-        # NOVO: Campo para Argumentos Manuais
         tk.Label(manual_frame, text="Args:").grid(row=3, column=0, sticky="e", padx=5, pady=5)
         self.args_entry = tk.Entry(manual_frame, width=30)
         self.args_entry.grid(row=3, column=1, padx=5, pady=5)
@@ -98,9 +91,8 @@ class AppGUI:
             bg="green", 
             fg="white"
         )
-        self.send_button.grid(row=4, columnspan=2, pady=10, sticky="ew") # Posição atualizada
+        self.send_button.grid(row=4, columnspan=2, pady=10, sticky="ew")
         
-        # --- Frame para Rotinas (Dinâmico) ---
         routine_frame = tk.LabelFrame(self.root, text="Rotinas Pré-Definidas", padx=10, pady=10)
         routine_frame.pack(fill="x", padx=10, pady=10)
 
@@ -152,15 +144,11 @@ class AppGUI:
         pkg = self.package_entry.get()
         cmd = self.command_entry.get()
         
-        # --- LÓGICA DE ARGUMENTOS MANUAIS ---
-        # Pega a string de argumentos e quebra pelos espaços
-        # Isso permite múltiplos argumentos: "arg1:=val1 arg2:=val2"
         args_string = self.args_entry.get()
         if args_string:
             args_list = args_string.split()
         else:
             args_list = []
-        # -----------------------------------
         
         if not pkg or not cmd:
             self.node.get_logger().warn("Pacote e Comando não podem estar vazios!")
