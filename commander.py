@@ -4,7 +4,7 @@ import rclpy
 from rclpy.node import Node
 from husky_commander.msg import Command, Routine 
 import threading
-import yaml  # NOVO: Importa a biblioteca YAML
+import yaml
 import os
 
 class GuiPublisherNode(Node):
@@ -14,30 +14,36 @@ class GuiPublisherNode(Node):
         self.routine_publisher_ = self.create_publisher(Routine, '/start_routine', 10)
         self.get_logger().info('Nó publicador da GUI iniciado.')
 
-    def publish_command(self, cmd_type, pkg, cmd):
+    def publish_command(self, cmd_type, pkg, cmd, args_list):
         """Publica uma mensagem de comando único."""
         msg = Command()
         msg.type = cmd_type
         msg.package = pkg
         msg.command = cmd
+        # ATUALIZADO: Adiciona a lista de argumentos
+        msg.args = args_list
+        
         self.command_publisher_.publish(msg)
-        self.get_logger().info(f'Publicando comando: {cmd_type} {pkg} {cmd}')
+        self.get_logger().info(f'Publicando comando: {cmd_type} {pkg} {cmd} {" ".join(args_list)}')
 
     def publish_routine(self, routine_name, steps_data):
         """
         Publica uma rotina. 
-        Esta função agora é "burra": ela apenas constrói a mensagem
-        a partir dos dados que recebe da GUI.
         """
         self.get_logger().info(f"Enviando rotina '{routine_name}'...")
         routine_msg = Routine()
-        routine_msg.commands = [] # Inicializa a lista de comandos
+        routine_msg.commands = []
 
         for step in steps_data:
             cmd_step = Command()
-            cmd_step.type = step.get('type', 'launch') # .get() para segurança
+            cmd_step.type = step.get('type', 'launch')
             cmd_step.package = step.get('package', '')
             cmd_step.command = step.get('command', '')
+            
+            # --- LÓGICA DE ARGUMENTOS ATUALIZADA ---
+            # Lê a chave 'args' do YAML. Se não existir, usa uma lista vazia.
+            cmd_step.args = step.get('args', [])
+            # ---------------------------------------
             
             if not cmd_step.package or not cmd_step.command:
                 self.get_logger().error(f"Passo da rotina inválido, pulando: {step}")
@@ -49,7 +55,6 @@ class GuiPublisherNode(Node):
             self.get_logger().warn("Rotina estava vazia ou inválida. Nada foi enviado.")
             return
 
-        # Publica a rotina completa
         self.routine_publisher_.publish(routine_msg)
         self.get_logger().info(f"Rotina '{routine_name}' enviada com {len(routine_msg.commands)} passos.")
 
@@ -60,7 +65,7 @@ class AppGUI:
         self.root = tk.Tk()
         self.root.title("Controle Remoto do Robô")
         
-        # --- Frame para Comandos Manuais (Sem mudanças) ---
+        # --- Frame para Comandos Manuais ---
         manual_frame = tk.LabelFrame(self.root, text="Comando Manual", padx=10, pady=10)
         manual_frame.pack(fill="x", padx=10, pady=10)
 
@@ -78,7 +83,13 @@ class AppGUI:
         tk.Label(manual_frame, text="Comando:").grid(row=2, column=0, sticky="e", padx=5, pady=5)
         self.command_entry = tk.Entry(manual_frame, width=30)
         self.command_entry.grid(row=2, column=1, padx=5, pady=5)
-        self.command_entry.insert(0, "mapping_slam.launch.py")
+        self.command_entry.insert(0, "nav2_husky.launch.py")
+
+        # NOVO: Campo para Argumentos Manuais
+        tk.Label(manual_frame, text="Args:").grid(row=3, column=0, sticky="e", padx=5, pady=5)
+        self.args_entry = tk.Entry(manual_frame, width=30)
+        self.args_entry.grid(row=3, column=1, padx=5, pady=5)
+        self.args_entry.insert(0, "map:='path/to/map.yaml'") # Exemplo
 
         self.send_button = tk.Button(
             manual_frame, 
@@ -87,28 +98,24 @@ class AppGUI:
             bg="green", 
             fg="white"
         )
-        self.send_button.grid(row=3, columnspan=2, pady=10, sticky="ew")
+        self.send_button.grid(row=4, columnspan=2, pady=10, sticky="ew") # Posição atualizada
         
-        # --- NOVO: Frame para Rotinas (Dinâmico) ---
+        # --- Frame para Rotinas (Dinâmico) ---
         routine_frame = tk.LabelFrame(self.root, text="Rotinas Pré-Definidas", padx=10, pady=10)
         routine_frame.pack(fill="x", padx=10, pady=10)
 
-        # Carrega as rotinas do YAML
         self.routines = self.load_routines('routines.yaml')
         
         if not self.routines:
             tk.Label(routine_frame, text="Arquivo 'routines.yaml' não encontrado ou vazio.", fg="red").pack()
         else:
-            # Cria os botões dinamicamente
             for routine in self.routines:
                 name = routine['name']
                 steps = routine['steps']
                 
-                # Usa lambda para capturar os dados da rotina no momento da criação do botão
                 btn = tk.Button(
                     routine_frame,
                     text=name,
-                    # IMPORTANTE: O lambda passa os dados da rotina para o publisher
                     command=lambda n=name, s=steps: self.node.publish_routine(n, s),
                     bg="blue",
                     fg="white",
@@ -120,7 +127,6 @@ class AppGUI:
         
     def load_routines(self, filename):
         """Carrega as definições de rotina do arquivo YAML."""
-        # Procura o YAML na mesma pasta do script
         script_dir = os.path.dirname(os.path.realpath(__file__))
         filepath = os.path.join(script_dir, filename)
         
@@ -146,13 +152,23 @@ class AppGUI:
         pkg = self.package_entry.get()
         cmd = self.command_entry.get()
         
+        # --- LÓGICA DE ARGUMENTOS MANUAIS ---
+        # Pega a string de argumentos e quebra pelos espaços
+        # Isso permite múltiplos argumentos: "arg1:=val1 arg2:=val2"
+        args_string = self.args_entry.get()
+        if args_string:
+            args_list = args_string.split()
+        else:
+            args_list = []
+        # -----------------------------------
+        
         if not pkg or not cmd:
             self.node.get_logger().warn("Pacote e Comando não podem estar vazios!")
             return
-        self.node.publish_command(cmd_type, pkg, cmd)
+            
+        self.node.publish_command(cmd_type, pkg, cmd, args_list)
 
     def on_closing(self):
-        """Callback para quando a janela da GUI é fechada."""
         self.node.get_logger().info('Janela da GUI fechada. Desligando nó.')
         self.root.destroy()
         rclpy.get_global_executor().shutdown()

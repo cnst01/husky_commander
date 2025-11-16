@@ -1,17 +1,19 @@
 # Lista de rotinas que o husky_commander pode executar.
 # Cada rotina tem um nome (para o botão) e uma lista de passos.
 routines:
-  - name: "Iniciar Rotina de Navegação (Waypoint)"
+  - name: "Iniciar Rotina de Simulação Office (Bringup)"
     steps:
       - type: "launch"
-        package: "husky_navigation"
-        command: "nav2_husky.launch.py"
+        package: "clearpath_gz"
+        command: "gz_sim.launch.py"
+        args:
+          - "world:=office"
         
-      - type: "run"
-        package: "husky_navigation"
-        command: "waypoint_state_machine"
-
-  - name: "Iniciar Rotina de Simulação (Bringup)"
+      - type: "launch"
+        package: "clearpath_gz"
+        command: "robot_spawn.launch.py"
+  
+  - name: "Iniciar Rotina de Simulação Default (Bringup)"
     steps:
       - type: "launch"
         package: "clearpath_gz"
@@ -21,8 +23,29 @@ routines:
         package: "clearpath_gz"
         command: "robot_spawn.launch.py"
 
+  - name: "Iniciar Rotina de Navegação on Office Map"
+    steps:
+      - type: "launch"
+        package: "husky_navigation"
+        command: "nav2_husky.launch.py"
+        args:
+          - "map:=src/husky_navigation/maps/office_map.yaml"
+          - "use_sim_time:=true"
+  
+  - name: "Iniciar Rotina de Navegação on Default Map"
+    steps:
+      - type: "launch"
+        package: "husky_navigation"
+        command: "nav2_husky.launch.py"
+
   - name: "Iniciar Mapeamento (SLAM)"
     steps:
       - type: "launch"
         package: "husky_navigation"
         command: "mapping_slam.launch.py"
+  
+  - name: "Go to Waipoints"
+    steps:
+      - type: "run"
+        package: "husky_navigation"
+        command: "waypoint_state_machine.py"

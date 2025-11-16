@@ -6,3 +6,4 @@ string package
 
 # Nome do executável ou launch file
 string command
+string[] args
