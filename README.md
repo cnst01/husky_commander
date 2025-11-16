@@ -24,7 +24,7 @@ Este sistema é composto por três partes principais:
     * `scripts/waiter_node.py`: Um nó Python "ouvinte" (subscriber) que fica rodando no robô, esperando por mensagens no tópico `/start_command`.
     * `launch/command_listener.launch.py`: Um arquivo de launch simples que apenas inicia o `waiter_node.py`.
 
-2.  **O Aplicativo de Controle (`gui_app.py`)**
+2.  **O Aplicativo de Controle (`commander.py`)**
     * Um script Python (Tkinter) independente que **não** faz parte deste pacote.
     * Ele fornece a interface gráfica para o operador inserir o comando.
     * Ele atua como um "publicador" (publisher), enviando a mensagem `Command.msg` para o tópico `/start_command`.
@@ -59,7 +59,7 @@ Este é o processo para "armar" o robô, deixando-o pronto para receber comandos
 1.  Abra um terminal no robô (ou com acesso a ele via SSH).
 2.  Faça o "source" do seu workspace:
     ```bash
-    source ~/clearpath_ws/install/setup.bash
+    source ~/clearpath_ws/install/setup.zsh
     ```
 3.  Execute o launch file do `husky_commander`. Isso iniciará o `waiter_node.py`:
     ```bash
@@ -75,17 +75,16 @@ O robô agora está pronto e esperando.
 
 Este é o processo que o operador humano executa para enviar um comando.
 
-1.  Salve o script `gui_app.py` em um local de fácil acesso (ex: `~/gui_app.py`).
-2.  Abra um novo terminal.
-3.  **IMPORTANTE:** Este terminal também precisa ter acesso ao ROS 2 e às definições da mensagem `husky_commander`. Faça o "source" do workspace (ou de uma instalação que contenha o `husky_commander`):
-    ```bash
-    source ~/clearpath_ws/install/setup.bash
+1.  Abra um novo terminal.
+2.  **IMPORTANTE:** Este terminal também precisa ter acesso ao ROS 2 e às definições da mensagem `husky_commander`. Faça o "source" do workspace (ou de uma instalação que contenha o `husky_commander`):
+    ```zsh
+    source ~/clearpath_ws/install/setup.zsh
     ```
-4.  Execute o aplicativo da GUI:
+3.  Execute o aplicativo da GUI:
     ```bash
-    python3 ~/gui_app.py
+    python3 ~/commander.py
     ```
-5.  Uma janela da GUI aparecerá.
+4.  Uma janela da GUI aparecerá.
 
 ### Executando um Comando
 
