@@ -12,6 +12,18 @@ routines:
       - type: "launch"
         package: "clearpath_gz"
         command: "robot_spawn.launch.py"
+
+  - name: "Iniciar Rotina de Simulação Farm (Bringup)"
+    steps:
+      - type: "launch"
+        package: "clearpath_gz"
+        command: "gz_sim.launch.py"
+        args:
+          - "world:=agrobot_farm"
+        
+      - type: "launch"
+        package: "clearpath_gz"
+        command: "robot_spawn.launch.py"
   
   - name: "Iniciar Rotina de Simulação Default (Bringup)"
     steps:
@@ -22,6 +34,12 @@ routines:
       - type: "launch"
         package: "clearpath_gz"
         command: "robot_spawn.launch.py"
+
+  - name: "Iniciar Rotina de Navegação Com GPS"
+    steps:
+      - type: "launch"
+        package: "husky_navigation"
+        command: "slam_gps.launch.py"
 
   - name: "Iniciar Rotina de Navegação on Office Map"
     steps:
